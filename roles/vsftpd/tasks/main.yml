@@ -1,0 +1,33 @@
+---
+# tasks file for vsftpd
+- name: install package
+  apt:
+    name: vsftpd
+    state: present
+    update-cache: yes
+
+- name: service enabled
+  service:
+    name: vsftpd
+    state: started
+    enabled: yes
+ 
+- name: Create home dir for anonymous user if it does not exists
+  file:
+    path: /var/ftp/pub
+    state: directory
+    mode: 0755
+
+- name: modify config
+  lineinfile:
+    dest: /etc/vsftpd.conf
+    backup: yes
+    backrefs: yes
+    state: present
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: anonymous_enable=NO, line: anonymous_enable=YES }
+    - { regexp: anon_upload_enable, line: anon_upload_enable=YES }
+    - { regexp: anon_mkdir_write_enable, line: anon_mkdir_write_enable=YES }
+  notify: restart_vsftpd
